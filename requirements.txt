@@ -1,0 +1,8 @@
+langchain-experimental
+langchain
+transformers
+torch
+langserve
+rebuff
+sse_starlette
+python-dotenv
