@@ -34,3 +34,10 @@ streamlit run langchain_streamlit.py
 - Have a function to combat prompt injection.
   - Have identified the technique using Rebuff and Langchain
 - Sentiment Analysis / Multi-lingual support
+
+# Demo
+
+https://github.com/vishnupriyavr/learntube-bot/assets/55908719/e5294a02-1f87-459a-aae6-a02279792c2f
+
+
+
