@@ -19,12 +19,27 @@ for message in st.session_state.messages:
 
 # If user inputs a new prompt, generate and draw a new response
 if prompt := st.chat_input():
+    assistant_data = ""
     # Add user message to chat history
     st.chat_message("human").write(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     response = requests.post(
         "http://localhost:8000/chat", params={"text_input": prompt}
-    ).json()
-    st.chat_message("ai").write(response)
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    )
+    assistant_status = response.status_code
+
+    if assistant_status == 412:
+        warning_content = "Injection detected!"
+        st.chat_message("ai", avatar="🚨").warning(warning_content)
+        st.session_state.messages.append(
+            {"role": "assistant", "content": warning_content}
+        )
+
+    else:
+        assistant_data = response.json()
+        st.chat_message("ai").write(assistant_data)
+
+        st.session_state.messages.append(
+            {"role": "assistant", "content": assistant_data}
+        )
