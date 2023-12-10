@@ -53,11 +53,19 @@ def read_root(request: Request):
 @app.post("/chat")
 def conversational_form(text_input: str, response: Response):
     is_injection = rb.detect_injection(text_input)
-    response.status_code = status.HTTP_200_OK
     assistant_response = conversation.run(input=text_input)
+    response.status_code = status.HTTP_200_OK
 
     if is_injection.injectionDetected:
-        response.status_code = status.HTTP_412_PRECONDITION_FAILED
+        print("is_injection: " + str(is_injection))
+        print(
+            "is_injection.vectorScore.get: "
+            + str(is_injection.vectorScore.get("topScore"))
+        )
+        if is_injection.vectorScore.get("topScore") > 0.8:
+            response.status_code = status.HTTP_412_PRECONDITION_FAILED
+        else:
+            response.status_code = status.HTTP_403_FORBIDDEN
         return response
     else:
         return assistant_response
