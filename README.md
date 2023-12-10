@@ -9,6 +9,7 @@ Advanced conversational chatbot for data gathering and deployment
 - Created a backend for the same to be used as a service with REST APIs for the bot flow, using FastAPI
 - Created a frontend for the same to be used as a chat app, for seamless conversation between user and assistant, using Streamlit.
 - [UPDATE] Created a function to combat prompt injection.
+- [UPDATE] Addressed all the improvement feedback comments.
 
 # Frameworks used:
 
