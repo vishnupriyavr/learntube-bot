@@ -1,11 +1,9 @@
 from fastapi import FastAPI, Request, status, Response
 from pathlib import Path
 
-from langchain.chains import LLMChain
+from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
-from langchain.prompts import (
-    ChatPromptTemplate,
-)
+from langchain.prompts import PromptTemplate
 import streamlit as st
 from langchain.chat_models import ChatOpenAI
 
@@ -16,7 +14,7 @@ load_dotenv()
 
 # Add prompt injection detection
 
-from rebuff_test import Rebuff
+from rebuff import Rebuff
 
 rebuff_api_key = os.environ["REBUFF_API_KEY"]
 
@@ -31,20 +29,20 @@ def load_conv_model():
 
 app = FastAPI(title="Conversational Form")
 
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "You are a data gathering assistant.Your task is to collect all the user details of name, email, city of residence, phone number and age. Ask one personal detail at a time. If the user hesitates to share information, divert to small talk or different topics, assure them of their concerns. With each user input, find out the sentiment of the user input, and reply adapting to the mood of the user. If all the personal details are answered then thank them and ask how you can help them.",
-        ),
-        ("human", "{question}"),
-    ]
-)
-memory = ConversationBufferMemory()
-# view_messages = st.expander("View the message contents in session state")
+template = """The following is a friendly conversation between a human and an AI. The AI is helpful and provides lots of specific details from its context. While helping the human, the AI side by side ask the human, his/her details like name, email, city of residence, phone number and age. The AI will ask one personal detail at a time. If the human hesitates to share information, the AI will not force the user to share their details, and will complete the help to them, and also assure the human of their concerns. If the AI does not know the answer to a question, it truthfully says it does not know. 
 
+Current conversation:
+{history}
+Human: {input}
+AI Assistant:"""
+PROMPT = PromptTemplate(input_variables=["history", "input"], template=template)
 llm = load_conv_model()
-llm_chain = LLMChain(llm=llm, prompt=prompt, memory=memory)
+conversation = ConversationChain(
+    prompt=PROMPT,
+    llm=llm,
+    verbose=True,
+    memory=ConversationBufferMemory(ai_prefix="AI Assistant"),
+)
 
 
 @app.get("/")
@@ -56,7 +54,7 @@ def read_root(request: Request):
 def conversational_form(text_input: str, response: Response):
     is_injection = rb.detect_injection(text_input)
     response.status_code = status.HTTP_200_OK
-    assistant_response = llm_chain.run(question=text_input)
+    assistant_response = conversation.run(input=text_input)
 
     if is_injection.injectionDetected:
         response.status_code = status.HTTP_412_PRECONDITION_FAILED
